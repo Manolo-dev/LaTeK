@@ -1,0 +1,50 @@
+<!-- o  burp °  __v____ o °  O o ° o -->
+<!--  O °  o\  '       \ ° _° o O °  -->
+<!-- ° O  ° o | _o      `-'_>  ° o ° -->
+<!--   o ° o   .         .-.> o O °  -->
+<!--  O   o ° o `-------' °  o ° O o -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <title>LaTeK</title>
+</head>
+<body>
+
+<div id="one">
+    <div id="IDE">
+        <div id="counter">
+            <div class="cell" style="--color: #f000f0; --font-weight: 900;"></div>
+        </div>
+        <div id="textarea">
+            <div id="syntax">
+                <div class="line"></div>
+            </div>
+            <textarea
+                id="latex"
+                name="latex"
+                onclick="adjust_caret_scroll(event); focus_line(event);"
+                onscroll="adjust_scroll(event);"
+                onkeydown= "let result = _onkeydown(event);
+                            count_line(event);
+                            focus_line(event);
+                            codecogs(event);
+                            return result;"
+                onpaste="multiple_syntax_colorization(event);"
+                spellcheck="false"
+            ></textarea>
+        </div>
+    </div>
+</div>
+
+<div id="two">
+    <div id="result-box">
+        <img onclick="window.open(this.src);" id="result" src="">
+    </div>
+</div>
+
+<script src="./renderer.js"></script>
+</body>
+</html>

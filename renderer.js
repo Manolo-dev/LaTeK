@@ -301,26 +301,17 @@ async function focus_line(element) {
         counter.children[line].style.setProperty("--font-weight", 900);
 
         last_line = line;
-<<<<<<< HEAD
-
-        adjust_scroll(event);
-=======
         adjust_scroll(element);
->>>>>>> 3fbfe51e9a18acad3305cda842fe40ff28997c3c
     }
 }
 
 var fun_time;
 
-<<<<<<< HEAD
-async function compile(event) {
-=======
 async function codecogs(event) {
     actualise_img(event.target);
 }
 
 async function actualise_img(element) {
->>>>>>> 3fbfe51e9a18acad3305cda842fe40ff28997c3c
     clearInterval(fun_time);
 
     fun_time = setTimeout(() => {

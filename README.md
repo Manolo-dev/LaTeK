@@ -74,6 +74,7 @@ $$
 |                    |              console |
 |                    |                 path |
 |                    |                   fs |
+|                    |             latex.js |
 
 ---
 

@@ -30,9 +30,9 @@
                 onkeydown= "let result = _onkeydown(event);
                             count_line(event);
                             focus_line(event);
-                            codecogs(event);
+                            compile(event);
                             return result;"
-                onpaste="multiple_syntax_colorization(event);"
+                onpaste="multiple_syntax_colorization(event); compile(event);"
                 spellcheck="false"
             ></textarea>
         </div>
@@ -41,10 +41,12 @@
 
 <div id="two">
     <div id="result-box">
-        <img onclick="window.open(this.src);" id="result" src="">
+        <!-- <img onclick="window.open(this.src);" id="result" src=""> -->
+        <div id="result">\sum_{k=1}^n k = \frac{n(n+1)}{2}</div>
     </div>
 </div>
 
 <script src="./renderer.js"></script>
+<script type="text/javascript"> $("#result").latex();</script>
 </body>
 </html>

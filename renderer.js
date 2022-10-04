@@ -303,14 +303,14 @@ async function focus_line(event) {
         counter.children[line].style.setProperty("--font-weight", 900);
 
         last_line = line;
-    }
 
-    adjust_scroll(event);
+        adjust_scroll(event);
+    }
 }
 
 var fun_time;
 
-async function codecogs(event) {
+async function compile(event) {
     clearInterval(fun_time);
 
     fun_time = setTimeout((event) => {

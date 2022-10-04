@@ -28,9 +28,15 @@
                 onclick="adjust_caret_scroll(event); focus_line(event);"
                 onscroll="adjust_scroll(event);"
                 onkeydown= "let result = _onkeydown(event);
+<<<<<<< HEAD
                             count_line(event);
                             focus_line(event);
                             compile(event);
+=======
+                            count_line(this);
+                            focus_line(this);
+                            codecogs(event);
+>>>>>>> 3fbfe51e9a18acad3305cda842fe40ff28997c3c
                             return result;"
                 onpaste="multiple_syntax_colorization(event); compile(event);"
                 spellcheck="false"

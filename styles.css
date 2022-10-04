@@ -82,6 +82,7 @@ body {
 }
 
 #textarea {
+    display: flex;
     position: relative;
 
     flex-grow: 1;
@@ -92,10 +93,12 @@ body {
 }
 
 #syntax {
+    flex-grow: 1;
     position: absolute;
     width: calc(100% - 5px);
     height: 100%;
     overflow: hidden;
+    resize: horizontal;
 }
 
 .line {

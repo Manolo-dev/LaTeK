@@ -14,7 +14,7 @@ const createWindow = () => {
     const win = new BrowserWindow({
         width: 800,
         height: 600,
-        icon: __dirname + "/favicon.ico",
+        icon: __dirname + "/favicon.svg",
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -111,13 +111,16 @@ const createWindow = () => {
                 {type: "separator"},
                 {
                     label: "Cut",
-                    accelerator: "CommandOrControl+x"
+                    accelerator: "CommandOrControl+x",
+                    click() { win.webContents.send("cut"); }
                 }, {
                     label: "Copy",
-                    accelerator: "CommandOrControl+c"
+                    accelerator: "CommandOrControl+c",
+                    click() { win.webContents.send("copy"); }
                 }, {
                     label: "Paste",
-                    accelerator: "CommandOrControl+v"
+                    accelerator: "CommandOrControl+v",
+                    click() { win.webContents.send("paste"); }
                 }
             ]
         },

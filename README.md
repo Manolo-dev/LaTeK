@@ -80,15 +80,15 @@ $$
 
 ## Installation
 
-Pour lancer : `npm start`.
+Pour lancer : `npm run start`.
 
-Pour compiler : `npm make`.
+Pour compiler : `npm run make`.
 
 ---
 
 ## To do list
 
-- [ ] Gérer la position de l'IDE et du résultat (haut bas, gauche droite, etc...). Avec une table par exemple
+- [x] Gérer la position de l'IDE et du résultat (haut bas, gauche droite, etc...). Avec une table par exemple
 
 - [ ] Créer un gestionnaire de préférences
   - [ ] Créer des variables CSS

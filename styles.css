@@ -98,7 +98,6 @@ body {
     width: calc(100% - 5px);
     height: 100%;
     overflow: hidden;
-    resize: horizontal;
 }
 
 .line {

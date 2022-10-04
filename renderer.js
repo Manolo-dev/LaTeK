@@ -34,10 +34,9 @@
 const {ipcRenderer} = require("electron");
 const fs = require("fs");
 
-function count_line(event) {
-    let target = event.target,
-        value  = target.value,
-        start  = target.selectionStart,
+function count_line(element) {
+    let value  = element.value,
+        start  = element.selectionStart,
         syntax = document.querySelector("#syntax");
 
     let focused_line = [...value.substring(0, start).matchAll(/^/gm)].length,
@@ -133,26 +132,26 @@ function _onkeydown(event) {
     let target = event.target;
     if(event.keyCode == 9) {
         let tab = '    ';
-        let v = target.value,
+        let value = target.value,
             s = target.selectionStart,
             e = target.selectionEnd;
         if(s == e) {
-            target.value = v.substring(0, s) + tab + v.substring(s);
+            target.value = value.substring(0, s) + tab + value.substring(s);
             target.selectionStart = target.selectionEnd = s + tab.length;
         } else {
             let number_line = 1;
-            let finded = [...v.matchAll(/^/gm)].map(a => a.index);
+            let finded = [...value.matchAll(/^/gm)].map(a => a.index);
             let i = finded.length - 1;
             for(; i > 0; i--) {
                 if(s < finded[i] && finded[i] < e) {
-                    v = v.substring(0, finded[i]) + tab + v.substring(finded[i]);
+                    value = value.substring(0, finded[i]) + tab + value.substring(finded[i]);
                     number_line += 1;
                 }
                 if(finded[i] <= s)
                     break;
             }
-            v = v.substring(0, finded[i]) + tab + v.substring(finded[i]);
-            target.value          = v;
+            value = value.substring(0, finded[i]) + tab + value.substring(finded[i]);
+            target.value          = value;
             target.selectionStart = s + tab.length;
             target.selectionEnd   = e + tab.length*number_line;
         }
@@ -215,20 +214,19 @@ function _onkeydown(event) {
     }
 
     Promise.resolve().then(_ => {
-        setTimeout(focus_line, 1, event);
-        setTimeout(count_line, 1, event);
+        setTimeout(focus_line, 1, target);
+        setTimeout(count_line, 1, target);
     });
 
     return true;
 }
 
-async function adjust_scroll(event) {
-    let target   = event.target,
-        start    = target.selectionStart,
-        end      = target.selectionEnd,
-        value    = target.value,
-        scroll   = target.scrollTop,
-        scroll_x = target.scrollLeft,
+async function adjust_scroll(element) {
+    let start    = element.selectionStart,
+        end      = element.selectionEnd,
+        value    = element.value,
+        scroll   = element.scrollTop,
+        scroll_x = element.scrollLeft,
         syntax   = document.querySelector("#syntax");
 
     document.querySelector("#counter").scrollTop = scroll;
@@ -265,12 +263,12 @@ function multiple_syntax_colorization(event) {
 
     target.value = before + after;
     target.selectionStart = start;
-    count_line(event);
+    count_line(target);
 
 
     target.value = before + code + after;
     target.selectionStart = start;
-    count_line(event);
+    count_line(target);
 
     for(let i = 0; i < len_line; i++) {
         syntax_colorization(syntax.children[start_line + i], code_lines[i]);
@@ -282,14 +280,14 @@ function multiple_syntax_colorization(event) {
 }
 
 var last_line = 0;
-async function focus_line(event) {
-    let target          = event.target,
-        start           = target.selectionStart,
-        end             = target.selectionEnd,
-        value           = target.value,
+async function focus_line(element) {
+    let start           = element.selectionStart,
+        end             = element.selectionEnd,
+        value           = element.value,
         line            = [...value.substring(0, start).matchAll(/^/gm)].length - 1,
         counter          = document.querySelector("#counter"),
         lines_start_end = [...value.matchAll(/^.*$/gm)].map(a => a[0]),
+        syntax          = document.querySelector("#syntax"),
         count_lines     = [...value.matchAll(/^/gm)].length;
 
     if(last_line < count_lines)
@@ -303,21 +301,24 @@ async function focus_line(event) {
         counter.children[line].style.setProperty("--font-weight", 900);
 
         last_line = line;
+        adjust_scroll(element);
     }
-
-    adjust_scroll(event);
 }
 
 var fun_time;
 
 async function codecogs(event) {
+    actualise_img(event.target);
+}
+
+async function actualise_img(element) {
     clearInterval(fun_time);
 
-    fun_time = setTimeout((event) => {
-        let t          = event.target,
-            v          = t.value;
-        let url = `https://latex.codecogs.com/gif.latex?\\dpi{300} \\\\${encodeURI(v)}`;
-        if(v == "") {
+    fun_time = setTimeout(() => {
+        let target          = element,
+            value          = target.value;
+        let url = `https://latex.codecogs.com/gif.latex?\\dpi{300} \\\\${encodeURI(value)}`;
+        if(value == "") {
             url = "";
         }
         document.querySelector("#result").src = url;
@@ -368,4 +369,24 @@ ipcRenderer.on("export-image", (event, args) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+});
+
+ipcRenderer.on("cut", (event, args) => {
+    document.execCommand("cut");
+    let textarea = document.getElementById("latex");
+    actualise_img(textarea);
+    console.log(textarea)
+    syntax_colorization(textarea, textarea.value);
+});
+
+ipcRenderer.on("copy", (event, args) => {
+    document.execCommand("copy");
+});
+
+ipcRenderer.on("paste", (event, args) => {
+    document.execCommand("paste");
+    let textarea = document.getElementById("latex");
+    let syntax = document.querySelector("#syntax")
+    actualise_img(textarea);
+    syntax_colorization(syntax, textarea.value);
 });

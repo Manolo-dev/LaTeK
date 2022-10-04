@@ -1,26 +1,26 @@
 # LaTeK
 
-LaTeK est un IDE pour écrire de simples équations en LaTeX.
+LaTeK is an IDE to write simple LaTeX equations.
 
-### Qu'est-ce que c'est quoi dis donc LaTeX ?
+### What is LaTeX ?
 
-LaTeX est un langage de formatage (très semblable à un langage de balisage comme MathML) qui sert à écrire des mathématiques. LaTeX peut se compiler en PDF, PNG, GIF ou autre format d'image, voir même en MathML.
+LaTeX is a markup language (very similar to MathML) used to write mathematics. LaTeX can be compiled to PDF, PNG, GIF or other image format, even MathML.
 
-### Et à quoi ça sert ?
+### What is it for ?
 
-Ça sert simplement à écrire des maths de manière rapide et sans avoir à faire de mise en page. Pratique quand l'on veut prendre en note son cours d'algèbre ou de logique propositionnelle.
+It's simply used to write maths quickly and without having to do any layout. Useful when you want to take notes of your algebra or propositional logic course.
 
 ---
 
-## Exemple :
+## Example :
 
-Du code LaTeX comme celui ci :
+code LaTeX like this one :
 
 ```LaTeX
 \sum_{k=1}^n k = \frac{n(n+1)}{2}
 ```
 
-Sera converti en MathML :
+will be converted to MathML :
 
 ```xml
 <math display="block">
@@ -53,7 +53,7 @@ Sera converti en MathML :
 </math>
 ```
 
-ou en image :
+or as an image :
 
 $$
 \sum_{k=1}^n k = \frac{n(n+1)}{2}
@@ -61,52 +61,49 @@ $$
 
 ---
 
-## Spécifications
+## Specifications
 
-| technologie        |                outil |
-|:-------------------|---------------------:|
-| Langages           |      JS / HTML / CSS |
-| Compilateur        |              Node.js |
-|                    |       electron-forge |
-| Packages           |                  npm |
-| Environnement      | macOS / Windows 7/10 |
-| Librairies         |             electron |
-|                    |              console |
-|                    |                 path |
-|                    |                   fs |
-|                    |             latex.js |
-
----
+| technology          |                tool |
+|:--------------------|--------------------:|
+| Languages           |      JS / HTML / CSS |
+| Compiler            |              Node.js |
+|                     |       electron-forge |
+| Packages            |                  npm |
+| Environment         | macOS / Windows 7/10 |
+| Libraries           |             electron |
+|                     |              console |
+|                     |                 path |
+|                     |                   fs |
 
 ## Installation
 
-Pour lancer : `npm run start`.
+To run : `npm run start`.
 
-Pour compiler : `npm run make`.
+To compile : `npm run make`.
 
 ---
 
 ## To do list
 
-- [x] Gérer la position de l'IDE et du résultat (haut bas, gauche droite, etc...). Avec une table par exemple
+ - [x] Manage the position of the IDE and the result (top bottom, left right, etc...). With a table for example
 
-- [ ] Créer un gestionnaire de préférences
-  - [ ] Créer des variables CSS
+- [ ] Create a preferences manager
+  - [ ] Create CSS variables
 
-- [ ] Trouver un meilleur moyen de choisir les paramètres LaTeX
-  - [ ] Format de l'image pendant l'enregistrement
-  - [ ] Ne pas rouvrir de boite de dialog quand `ctrl+s` et `ctrl+e`
+- [ ] Find a better way to choose LaTeX parameters
+  - [ ] Image format during saving
+  - [ ] Don't reopen a dialog box when `ctrl+s` and `ctrl+e`
 
-- [ ] Terminer la gestion du menu
+- [ ] Finish the menu management
 
-- [ ] Créer une nouvelle image pour chaque ligne (\\)
+- [ ] Create a new image for each line (\\)
 
-- [ ] Utiliser un autre compilateur que codecogs, optimal : local
+- [ ] Use another compiler than codecogs, optimal: local
 
-- [ ] Créer une version artistique :
-  - [ ] IDE dans un écran de PC
-  - [ ] Clavier dont les touches s'allument quand on les tape (potentiellement clickable)
-  - [ ] Imprimante avec l'image compilée
-  - [ ] Livre de documentation avec des outils LaTeX (potentiellement une petite bibliothèque)
+- [ ] Create an artistic version :
+  - [ ] IDE in a PC screen
+  - [ ] Keyboard whose keys light up when you type them (potentially clickable)
+  - [ ] Printer with the compiled image
+  - [ ] Book of documentation with LaTeX tools (potentially a small library)
 
-- [ ] Le tout en 3D
+- [ ] All in 3D

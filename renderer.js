@@ -5,38 +5,42 @@
 //   O   o ° o `-------' °  o ° O o
 
 /** @TODO
- * @1 Gérer la position de l'IDE et du résultat (haut bas, gauche droite, etc...). Avec une table par exemple
+ * @~ Créer une nouvelle image pour chaque ligne (\\)
+ * - scroll auto vers la ligne concernée
  *
- * @2 Créer un gestionnaire de préférences
+ * @~ Créer un gestionnaire de préférences
  * - Créer des variables CSS
  *
- * @3 Trouver un meilleur moyen de choisir les paramètres LaTeX
+ * @~ Trouver un meilleur moyen de choisir les paramètres LaTeX
  * - Format de l'image pendant l'enregistrement
  * * - Ne pas rouvrir de boite de dialog quand ctrl+s et ctrl+e
  *
- * @4 Terminer la gestion du menu
- *
- * @5 Créer une nouvelle image pour chaque ligne (\\)
- *
- * @6 Utiliser un autre compilateur que codecogs, optimal : local
+ * @~ Terminer la gestion du menu
  */
 
 /** @POST_TODO
- * @1 Créer une version artistique :
+ * @~ Créer une version artistique :
  * - IDE dans un écran de PC
  * - Clavier dont les touches s'allument quand on les tape (potentiellement clickable)
  * - Imprimante avec l'image compilée
  * - Livre de documentation avec des outils LaTeX (potentiellement une petite bibliothèque)
  *
- * @2 Le tout en 3D
+ * @~ Le tout en 3D
  */
 
+
+onload = function() {
+    var t = document.querySelector("#latex").value = "";
+}
+
+var last_line = 0;
 const {ipcRenderer} = require("electron");
 const fs = require("fs");
+const TeXToSVG = require("./tex-to-svg.js");
 
-function count_line(element) {
-    let value  = element.value,
-        start  = element.selectionStart,
+function count_line(target) {
+    let value  = target.value,
+        start  = target.selectionStart,
         syntax = document.querySelector("#syntax");
 
     let focused_line = [...value.substring(0, start).matchAll(/^/gm)].length,
@@ -78,9 +82,8 @@ function count_line(element) {
     }
 }
 
-function adjust_caret_scroll(event, lines=1) {
-    let target       = event.target,
-        value        = target.value,
+function adjust_caret_scroll(target, lines=1) {
+    let value        = target.value,
         start        = target.selectionStart,
         scroll       = target.scrollTop,
         caret_scroll = [...value.substring(0, start).matchAll(/^/gm)].length
@@ -208,7 +211,7 @@ function _onkeydown(event) {
         target.selectionStart = target.selectionEnd
                               = start + count + 1;
 
-        adjust_caret_scroll(event);
+        adjust_caret_scroll(target);
 
         return false;
     }
@@ -221,12 +224,12 @@ function _onkeydown(event) {
     return true;
 }
 
-async function adjust_scroll(element) {
-    let start    = element.selectionStart,
-        end      = element.selectionEnd,
-        value    = element.value,
-        scroll   = element.scrollTop,
-        scroll_x = element.scrollLeft,
+async function adjust_scroll(target) {
+    let start    = target.selectionStart,
+        end      = target.selectionEnd,
+        value    = target.value,
+        scroll   = target.scrollTop,
+        scroll_x = target.scrollLeft,
         syntax   = document.querySelector("#syntax");
 
     document.querySelector("#counter").scrollTop = scroll;
@@ -244,9 +247,8 @@ function syntax_colorization(target, code) {
     target.innerHTML = code;
 }
 
-function multiple_syntax_colorization(event) {
-    let target     = event.target,
-        start      = target.selectionStart,
+function multiple_syntax_colorization(target) {
+    let start      = target.selectionStart,
         end        = target.selectionEnd,
         value      = target.value,
         before     = value.substring(0, start),
@@ -276,16 +278,15 @@ function multiple_syntax_colorization(event) {
 
     target.selectionStart = target.selectionEnd = start + code.length;
 
-    adjust_caret_scroll(event, len_line);
+    adjust_caret_scroll(target, len_line);
 }
 
-var last_line = 0;
-async function focus_line(element) {
-    let start           = element.selectionStart,
-        end             = element.selectionEnd,
-        value           = element.value,
+async function focus_line(target) {
+    let start           = target.selectionStart,
+        end             = target.selectionEnd,
+        value           = target.value,
         line            = [...value.substring(0, start).matchAll(/^/gm)].length - 1,
-        counter          = document.querySelector("#counter"),
+        counter         = document.querySelector("#counter"),
         lines_start_end = [...value.matchAll(/^.*$/gm)].map(a => a[0]),
         syntax          = document.querySelector("#syntax"),
         count_lines     = [...value.matchAll(/^/gm)].length;
@@ -301,27 +302,114 @@ async function focus_line(element) {
         counter.children[line].style.setProperty("--font-weight", 900);
 
         last_line = line;
-        adjust_scroll(element);
+        adjust_scroll(target);
     }
 }
 
 var fun_time;
 
-async function codecogs(event) {
-    actualise_img(event.target);
+async function compile(target) {
+    actualise_img(target);
 }
 
-async function actualise_img(element) {
+async function actualise_img(target) {
     clearInterval(fun_time);
 
+    // fun_time = setTimeout(() => {
+    //     let value = target.value;
+    //     let url   = `https://latex.codecogs.com/gif.latex?\\dpi{300} \\\\${encodeURI(value)}`;
+    //     if(value == "") {
+    //         url = "";
+    //     }
+    //     // document.querySelector("#result").src = url;
+    // }, 333, event);
+
     fun_time = setTimeout(() => {
-        let target          = element,
-            value          = target.value;
-        let url = `https://latex.codecogs.com/gif.latex?\\dpi{300} \\\\${encodeURI(value)}`;
-        if(value == "") {
-            url = "";
+        let value      = target.value,
+            start      = target.selectionStart,
+            result     = document.querySelector("#result-box");
+
+        let split_block = [],
+            temp        = "",
+            level       = 0;
+
+        let begin_match = [...value.matchAll(/\\begin\{[^{}]*\}/gim)],
+            begin_index = begin_match.map(a => a.index),
+            begin_value = begin_match.map(a => a[0]),
+
+            end_match   = [...value.matchAll(/\\end\{[^{}]*\}/gim)],
+            end_index   = end_match.map(a => a.index),
+            end_value   = end_match.map(a => a[0]);
+
+        for(let i = 0; i < value.length; i++) {
+            if(begin_index.includes(i)) {
+                level++;
+
+                if(level == 1) {
+                    let begin_block = begin_value[begin_index.indexOf(i)];
+
+                    split_block.push({ value: temp, type: "line" });
+                    temp = "";
+                }
+            }
+
+            if(end_index.includes(i)) {
+                level--;
+
+                if(level == 0) {
+                    let end_block = end_value[end_index.indexOf(i)];
+
+                    split_block.push({ value: temp + end_block, type: "block" });
+                    temp = "";
+                    i += end_block.length;
+                }
+            }
+
+            if(i < value.length)
+                temp += value[i];
         }
-        document.querySelector("#result").src = url;
+
+        if(temp != "")
+            split_block.push({ value: temp, type: "line" });
+
+        let lines = [];
+
+        for(let i = 0; i < split_block.length; i++) {
+            if(split_block[i].type == "line") {
+                lines.push(...split_block[i].value.split(/(?<=\\\\)/gm));
+            } else {
+                lines.push(split_block[i].value);
+            }
+        }
+
+        let start_line_block   = 0,
+            start_line = 0;
+        for(let i = 0; i < lines.length; i++) {
+            start_line_block += lines[i].length;
+            if(start < start_line_block) {
+                start_line = i;
+                break;
+            }
+        }
+
+
+
+        let i = result.children.length;
+        while(i <= start_line) {
+            let math_line = document.createElement("div");
+                math_line.setAttribute("class", "math-line");
+            result.appendChild(math_line);
+            i++;
+        }
+
+        while(i > lines.length) {
+            result.removeChild(result.children[result.children.length - 1]);
+            i--;
+        }
+
+        console.log(lines[start_line]);
+        const SVGeq = TeXToSVG(lines[start_line]);
+        result.children[start_line].innerHTML = SVGeq;
     }, 333, event);
 }
 

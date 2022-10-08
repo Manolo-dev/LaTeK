@@ -25,14 +25,14 @@
             <textarea
                 id="latex"
                 name="latex"
-                onclick="adjust_caret_scroll(event); focus_line(event);"
-                onscroll="adjust_scroll(event);"
+                onclick="adjust_caret_scroll(this); focus_line(this);"
+                onscroll="adjust_scroll(this);"
                 onkeydown= "let result = _onkeydown(event);
-                            count_line(event);
-                            focus_line(event);
-                            compile(event);
+                            count_line(this);
+                            focus_line(this);
+                            compile(this);
                             return result;"
-                onpaste="multiple_syntax_colorization(event); compile(event);"
+                onpaste="multiple_syntax_colorization(event); compile(this);"
                 spellcheck="false"
             ></textarea>
         </div>
@@ -41,12 +41,11 @@
 
 <div id="two">
     <div id="result-box">
-        <!-- <img onclick="window.open(this.src);" id="result" src=""> -->
+        <img onclick="window.open(this.src);" id="result" src="">
         <div id="result">\sum_{k=1}^n k = \frac{n(n+1)}{2}</div>
     </div>
 </div>
 
 <script src="./renderer.js"></script>
-<script type="text/javascript"> $("#result").latex();</script>
 </body>
 </html>

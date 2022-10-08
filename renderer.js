@@ -35,6 +35,9 @@ const {ipcRenderer} = require("electron");
 const fs = require("fs");
 
 function count_line(element) {
+    /*
+     * 
+     */
     let value  = element.value,
         start  = element.selectionStart,
         syntax = document.querySelector("#syntax");
@@ -78,16 +81,15 @@ function count_line(element) {
     }
 }
 
-function adjust_caret_scroll(event, lines=1) {
-    let target       = event.target,
-        value        = target.value,
-        start        = target.selectionStart,
-        scroll       = target.scrollTop,
+function adjust_caret_scroll(element, lines=1) {
+    let value        = element.value,
+        start        = element.selectionStart,
+        scroll       = element.scrollTop,
         caret_scroll = [...value.substring(0, start).matchAll(/^/gm)].length
-                     * parseInt(getComputedStyle(target).lineHeight)
-                     - parseInt(getComputedStyle(target).height);
+                     * parseInt(getComputedStyle(element).lineHeight)
+                     - parseInt(getComputedStyle(element).height);
     if(caret_scroll >= scroll || caret_scroll <= 0)
-        target.scrollTop = caret_scroll + parseInt(getComputedStyle(target).lineHeight)*lines;
+        element.scrollTop = caret_scroll + parseInt(getComputedStyle(element).lineHeight)*lines;
 }
 
 function parenthesis(target, char) {
@@ -307,22 +309,21 @@ async function focus_line(element) {
 
 var fun_time;
 
-async function codecogs(event) {
-    actualise_img(event.target);
+async function compile(element) {
+    actualise_img(element);
 }
 
 async function actualise_img(element) {
     clearInterval(fun_time);
 
     fun_time = setTimeout(() => {
-        let target          = element,
-            value          = target.value;
+        let value          = element.value;
         let url = `https://latex.codecogs.com/gif.latex?\\dpi{300} \\\\${encodeURI(value)}`;
         if(value == "") {
             url = "";
         }
         document.querySelector("#result").src = url;
-    }, 333, event);
+    }, 333);
 }
 
 ipcRenderer.on("open-file", (event, args) => {

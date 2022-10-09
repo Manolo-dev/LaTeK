@@ -26,14 +26,14 @@
                 id="latex"
                 name="latex"
                 value=""
-                onclick="adjust_caret_scroll(this); focus_line(this);"
-                onscroll="adjust_scroll(this);"
+                onclick="adjustCaretScroll(this); focusLine(this);"
+                onscroll="adjustScroll(this);"
                 onkeydown= "let result = _onkeydown(event);
-                            count_line(this);
-                            focus_line(this);
+                            countLine(this);
+                            focusLine(this);
                             compile(this);
                             return result;"
-                onpaste="multiple_syntax_colorization(this); compile(this);"
+                onpaste="multipleSyntaxColorization(this); compile(this);"
                 spellcheck="false"
             ></textarea>
         </div>

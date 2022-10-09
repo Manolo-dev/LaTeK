@@ -4,7 +4,7 @@ import { SVG } from 'mathjax-full/js/output/svg';
 import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor';
 import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html';
 import { AssistiveMmlHandler } from 'mathjax-full/js/a11y/assistive-mml';
-import { LiteElement } from 'mathjax-full/js/adaptors/lite/Element'
+import { LiteElement } from 'mathjax-full/js/adaptors/lite/Element';
 
 import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages';
 
@@ -13,7 +13,7 @@ const DEFAULT_OPTIONS = {
     width: 1280,
     ex: 8,
     em: 16,
-}
+};
 
 export function TeXToSVG(str:string, opts:JSON = null) {
     const options = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS;

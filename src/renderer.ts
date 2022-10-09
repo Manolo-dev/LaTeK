@@ -13,7 +13,7 @@
  *
  * @~ Trouver un meilleur moyen de choisir les paramètres LaTeX
  * - Format de l'image pendant l'enregistrement
- * * - Ne pas rouvrir de boite de dialog quand ctrl+s et ctrl+e
+ * * - Ne pas rouvrir de boite de dialog quand ctrl+start et ctrl+end
  *
  * @~ Terminer la gestion du menu
  */
@@ -21,36 +21,77 @@
 /** @POST_TODO
  * @~ Créer une version artistique :
  * - IDE dans un écran de PC
- * - Clavier dont les touches s'allument quand on les tape (potentiellement clickable)
+ * - Clavier dont les touches start'allument quand on les tape (potentiellement clickable)
  * - Imprimante avec l'image compilée
  * - Livre de documentation avec des outils LaTeX (potentiellement une petite bibliothèque)
  *
  * @~ Le tout en 3D
  */
 
+let last_line = 0;
+import { ipcRenderer } from "electron";
+import * as fs from 'fs';
 
-onload = function() {
-    var t = document.querySelector("#latex").value = "";
+import { mathjax } from 'mathjax-full/js/mathjax';
+import { TeX } from 'mathjax-full/js/input/tex';
+import { SVG } from 'mathjax-full/js/output/svg';
+import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor';
+import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html';
+import { AssistiveMmlHandler } from 'mathjax-full/js/a11y/assistive-mml';
+import { LiteElement } from 'mathjax-full/js/adaptors/lite/Element'
+
+import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages';
+
+
+const DEFAULT_OPTIONS = {
+    width: 1280,
+    ex: 8,
+    em: 16,
 }
 
-var last_line = 0;
-const {ipcRenderer} = require("electron");
-const fs = require("fs");
-const TeXToSVG = require("./tex-to-svg.js");
+function TeXToSVG(str:string, opts:JSON = null) {
+    const options = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS;
 
-function count_line(target) {
-    let value  = target.value,
-        start  = target.selectionStart,
-        syntax = document.querySelector("#syntax");
+    const ASSISTIVE_MML = false, FONT_CACHE = true, INLINE = false, CSS = false, packages = AllPackages.sort();
 
-    let focused_line = [...value.substring(0, start).matchAll(/^/gm)].length,
-        syntax_lines = syntax.children.length,
-        latex_lines  = [...value.matchAll(/^/gm)].length;
+    const adaptor = liteAdaptor();
+    const handler = RegisterHTMLHandler(adaptor);
+    if (ASSISTIVE_MML) AssistiveMmlHandler(handler);
+
+    const tex = new TeX({ packages });
+    const svg = new SVG({ fontCache: (FONT_CACHE ? 'local' : 'none') });
+    const html = mathjax.document('', { InputJax: tex, OutputJax: svg });
+
+    const node = html.convert(str, {
+        display: !INLINE,
+        em: options.em,
+        ex: options.ex,
+        containerWidth: options.width
+    });
+
+    const svgString = CSS ? adaptor.textContent(svg.styleSheet(html) as LiteElement) : adaptor.outerHTML(node);
+
+    return svgString.replace(
+        /<mjx-container.*?>(.*)<\/mjx-container>/gi,
+        "$1"
+    );
+}
+
+// import { TeXToSVG } from './tex-to-svg';
+
+function count_line(target: HTMLTextAreaElement) {
+    const value  = target.value,
+          start  = target.selectionStart,
+          syntax = document.querySelector("#syntax");
+
+    const focused_line = Array.from(value.substring(0, start).matchAll(/^/gm)).length,
+          syntax_lines = syntax.children.length,
+          latex_lines  = Array.from(value.matchAll(/^/gm)).length;
 
     {
         let i = syntax_lines;
         while(i < latex_lines) {
-            let line = document.createElement("div");
+            const line = document.createElement("div");
                 line.setAttribute("class", "line");
             syntax.insertBefore(line, syntax.children[focused_line - 1]);
             i++;
@@ -65,12 +106,12 @@ function count_line(target) {
         }
     }
 
-    let len_syntax  = syntax.children.length,
-        counter     = document.querySelector("#counter"),
-        len_counter = counter.children.length;
+    const len_syntax  = syntax.children.length,
+          counter     = document.querySelector("#counter");
+    let   len_counter = counter.children.length;
 
     while(len_counter < len_syntax) {
-        let cell = document.createElement("div");
+        const cell = document.createElement("div");
             cell.setAttribute("class", "cell");
         counter.appendChild(cell);
         len_counter++;
@@ -82,22 +123,22 @@ function count_line(target) {
     }
 }
 
-function adjust_caret_scroll(target, lines=1) {
-    let value        = target.value,
-        start        = target.selectionStart,
-        scroll       = target.scrollTop,
-        caret_scroll = [...value.substring(0, start).matchAll(/^/gm)].length
-                     * parseInt(getComputedStyle(target).lineHeight)
-                     - parseInt(getComputedStyle(target).height);
+function adjust_caret_scroll(target: HTMLTextAreaElement, lines=1) {
+    const value        = target.value,
+          start        = target.selectionStart,
+          scroll       = target.scrollTop,
+          caret_scroll = Array.from(value.substring(0, start).matchAll(/^/gm)).length
+                       * parseInt(getComputedStyle(target).lineHeight)
+                       - parseInt(getComputedStyle(target).height);
     if(caret_scroll >= scroll || caret_scroll <= 0)
         target.scrollTop = caret_scroll + parseInt(getComputedStyle(target).lineHeight)*lines;
 }
 
-function parenthesis(target, char) {
-    chars = ['()', '{}', '[]'][char];
-    let value = target.value,
-        start = target.selectionStart,
-        end   = target.selectionEnd;
+function parenthesis(target: HTMLTextAreaElement, char: number) {
+    const chars = ['()', '{}', '[]'][char];
+    const value = target.value,
+          start = target.selectionStart,
+          end   = target.selectionEnd;
     if(start == end) {
         target.value          = value.substring(0, start) + chars + value.substring(start);
         target.selectionStart = target.selectionEnd
@@ -109,14 +150,15 @@ function parenthesis(target, char) {
     }
 }
 
-function find_parenthesis_end(target, char) {
-    chars     = ['()', '{}', '[]'][char];
-    let value = target.value,
-        start = target.selectionStart,
-        end   = target.selectionEnd,
-        level = 1,
-        i     = start - 1;
-    value     = value.substring(0, start - 1) + value.substring(start);
+function find_parenthesis_end(target: HTMLTextAreaElement, char: number) {
+    const chars     = ['()', '{}', '[]'][char];
+    const start     = target.selectionStart;
+    let   value     = target.value,
+          i         = start - 1,
+          level     = 1;
+    
+    value = value.substring(0, start - 1) + value.substring(start);
+
     while(i <= value.length && level != 0) {
         if(value[i] == chars[0]) {
             level++;
@@ -126,44 +168,49 @@ function find_parenthesis_end(target, char) {
         }
         i++;
     }
+
     target.value          = value.substring(0, i - 1) + value.substring(i);
     target.selectionStart = target.selectionEnd
                           = start - 1;
 }
 
-function _onkeydown(event) {
-    let target = event.target;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _onkeydown(event: KeyboardEvent) {
+    const target = event.target;
+
+    if(!(target instanceof HTMLTextAreaElement)) return;
+
     if(event.keyCode == 9) {
-        let tab = '    ';
-        let value = target.value,
-            s = target.selectionStart,
-            e = target.selectionEnd;
-        if(s == e) {
-            target.value = value.substring(0, s) + tab + value.substring(s);
-            target.selectionStart = target.selectionEnd = s + tab.length;
+        const tab   = '    ';
+        let   value = target.value;
+        const start = target.selectionStart,
+              end   = target.selectionEnd;
+        if(start == end) {
+            target.value = value.substring(0, start) + tab + value.substring(start);
+            target.selectionStart = target.selectionEnd = start + tab.length;
         } else {
             let number_line = 1;
-            let finded = [...value.matchAll(/^/gm)].map(a => a.index);
+            const finded = Array.from(value.matchAll(/^/gm)).map(a => a.index);
             let i = finded.length - 1;
             for(; i > 0; i--) {
-                if(s < finded[i] && finded[i] < e) {
+                if(start < finded[i] && finded[i] < end) {
                     value = value.substring(0, finded[i]) + tab + value.substring(finded[i]);
                     number_line += 1;
                 }
-                if(finded[i] <= s)
+                if(finded[i] <= start)
                     break;
             }
             value = value.substring(0, finded[i]) + tab + value.substring(finded[i]);
             target.value          = value;
-            target.selectionStart = s + tab.length;
-            target.selectionEnd   = e + tab.length*number_line;
+            target.selectionStart = start + tab.length;
+            target.selectionEnd   = end + tab.length*number_line;
         }
         return false;
     }
 
     if(['(', '{', '['].includes(event.key)) {
         if(target.selectionStart < target.value.length)
-            if(target.selectionStart == target.selectionEnd && !target.value[target.selectionStart].match(/\t|\n|\r|\s|,|;|:|\.|\)|\}|\]/))
+            if(target.selectionStart == target.selectionEnd && !target.value[target.selectionStart].match(/\t|\n|\r|\start|,|;|:|\.|\)|\}|\]/))
                 return true;
         event.preventDefault();
         parenthesis(target, ['(', '{', '['].indexOf(event.key));
@@ -197,13 +244,12 @@ function _onkeydown(event) {
     }
 
     if(event.keyCode == 13) {
-        let value  = target.value,
-            start  = target.selectionStart,
-            end    = target.selectionEnd,
-            scroll = target.scrollTop,
-            count  = 0,
-            index  = 0,
-            text   = value.substring(value.substring(0, start).lastIndexOf('\n') + 1, start);
+        const value  = target.value,
+              start  = target.selectionStart,
+              end    = target.selectionEnd,
+              text   = value.substring(value.substring(0, start).lastIndexOf('\n') + 1, start);
+        let count    = 0,
+            index    = 0;
         while (text.charAt(index++) == ' ') {
             count++;
         }
@@ -224,13 +270,10 @@ function _onkeydown(event) {
     return true;
 }
 
-async function adjust_scroll(target) {
-    let start    = target.selectionStart,
-        end      = target.selectionEnd,
-        value    = target.value,
-        scroll   = target.scrollTop,
-        scroll_x = target.scrollLeft,
-        syntax   = document.querySelector("#syntax");
+async function adjust_scroll(target: HTMLTextAreaElement) {
+    const scroll   = target.scrollTop,
+          scroll_x = target.scrollLeft,
+          syntax   = document.querySelector("#syntax");
 
     document.querySelector("#counter").scrollTop = scroll;
     syntax.scrollTop  = scroll;
@@ -238,7 +281,7 @@ async function adjust_scroll(target) {
 }
 
 
-function syntax_colorization(target, code) {
+function syntax_colorization(target:Element, code: string) {
     code = code
         .replace(/(\\\\)/gim, "<span style=\"color: #f08;\">$1</span>")
         .replace(/(\\([a-z]+|\{|\}|\[|\]))/gim, "<span style=\"color: #0aa;\">$1</span>")
@@ -247,18 +290,18 @@ function syntax_colorization(target, code) {
     target.innerHTML = code;
 }
 
-function multiple_syntax_colorization(target) {
-    let start      = target.selectionStart,
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function multiple_syntax_colorization(target: HTMLTextAreaElement) {
+    if (!(event instanceof ClipboardEvent)) return;
+    const start      = target.selectionStart,
         end        = target.selectionEnd,
         value      = target.value,
         before     = value.substring(0, start),
         after      = value.substring(end),
-        start_line = [...value.substring(0, start).matchAll(/^/gm)].length - 1,
-        end_line   = [...value.substring(0, end).matchAll(/^/gm)].length - 1,
+        start_line = Array.from(value.substring(0, start).matchAll(/^/gm)).length - 1,
         syntax     = document.querySelector("#syntax"),
         code       = event.clipboardData.getData("Text").replace(/\r\n|\r|\n/gm, "\n"),
-        code_lines = [...code.split(/^/gm)],
-        scroll     = target.scrollTop,
+        code_lines = Array.from(code.split(/^/gm)),
         len_line   = code_lines.length;
 
     event.preventDefault();
@@ -281,38 +324,38 @@ function multiple_syntax_colorization(target) {
     adjust_caret_scroll(target, len_line);
 }
 
-async function focus_line(target) {
-    let start           = target.selectionStart,
-        end             = target.selectionEnd,
-        value           = target.value,
-        line            = [...value.substring(0, start).matchAll(/^/gm)].length - 1,
-        counter         = document.querySelector("#counter"),
-        lines_start_end = [...value.matchAll(/^.*$/gm)].map(a => a[0]),
-        syntax          = document.querySelector("#syntax"),
-        count_lines     = [...value.matchAll(/^/gm)].length;
+async function focus_line(target: HTMLTextAreaElement) {
+    const start           = target.selectionStart,
+        value             = target.value,
+        line              = Array.from(value.substring(0, start).matchAll(/^/gm)).length - 1,
+        counter           = document.querySelector("#counter"),
+        lines_start_end   = Array.from(value.matchAll(/^.*$/gm)).map(a => a[0]),
+        syntax            = document.querySelector("#syntax"),
+        count_lines       = Array.from(value.matchAll(/^/gm)).length;
 
     if(last_line < count_lines)
         syntax_colorization(syntax.children[last_line], lines_start_end[last_line]);
     syntax_colorization(syntax.children[line], lines_start_end[line]);
 
     if(line != last_line) {
-        counter.children[last_line].style.removeProperty("--color");
-        counter.children[last_line].style.removeProperty("--font-weight");
-        counter.children[line].style.setProperty("--color", "#f000f0");
-        counter.children[line].style.setProperty("--font-weight", 900);
+        (counter.children[last_line] as HTMLElement).style.removeProperty("--color");
+        (counter.children[last_line] as HTMLElement).style.removeProperty("--font-weight");
+        (counter.children[line] as HTMLElement).style.setProperty("--color", "#f000f0");
+        (counter.children[line] as HTMLElement).style.setProperty("--font-weight", "900");
 
         last_line = line;
         adjust_scroll(target);
     }
 }
 
-var fun_time;
+let fun_time: number;
 
-async function compile(target) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function compile(target: HTMLTextAreaElement) {
     actualise_img(target);
 }
 
-async function actualise_img(target) {
+async function actualise_img(target: HTMLTextAreaElement) {
     clearInterval(fun_time);
 
     // fun_time = setTimeout(() => {
@@ -325,19 +368,19 @@ async function actualise_img(target) {
     // }, 333, event);
 
     fun_time = setTimeout(() => {
-        let value      = target.value,
-            start      = target.selectionStart,
-            result     = document.querySelector("#result-box");
+        const value       = target.value,
+              start       = target.selectionStart,
+              split_block = [],
+              result      = document.querySelector("#result-box");
 
-        let split_block = [],
-            temp        = "",
-            level       = 0;
+        let temp          = "",
+            level         = 0;
 
-        let begin_match = [...value.matchAll(/\\begin\{[^{}]*\}/gim)],
+        const begin_match = Array.from(value.matchAll(/\\begin\{[^{}]*\}/gim)),
             begin_index = begin_match.map(a => a.index),
             begin_value = begin_match.map(a => a[0]),
 
-            end_match   = [...value.matchAll(/\\end\{[^{}]*\}/gim)],
+            end_match   = Array.from(value.matchAll(/\\end\{[^{}]*\}/gim)),
             end_index   = end_match.map(a => a.index),
             end_value   = end_match.map(a => a[0]);
 
@@ -346,8 +389,6 @@ async function actualise_img(target) {
                 level++;
 
                 if(level == 1) {
-                    let begin_block = begin_value[begin_index.indexOf(i)];
-
                     split_block.push({ value: temp, type: "line" });
                     temp = "";
                 }
@@ -357,7 +398,7 @@ async function actualise_img(target) {
                 level--;
 
                 if(level == 0) {
-                    let end_block = end_value[end_index.indexOf(i)];
+                    const end_block = end_value[end_index.indexOf(i)];
 
                     split_block.push({ value: temp + end_block, type: "block" });
                     temp = "";
@@ -372,7 +413,7 @@ async function actualise_img(target) {
         if(temp != "")
             split_block.push({ value: temp, type: "line" });
 
-        let lines = [];
+        const lines = [];
 
         for(let i = 0; i < split_block.length; i++) {
             if(split_block[i].type == "line") {
@@ -396,8 +437,8 @@ async function actualise_img(target) {
 
         let i = result.children.length;
         while(i <= start_line) {
-            let math_line = document.createElement("div");
-                math_line.setAttribute("class", "math-line");
+            const math_line = document.createElement("div");
+            math_line.setAttribute("class", "math-line");
             result.appendChild(math_line);
             i++;
         }
@@ -420,13 +461,14 @@ ipcRenderer.on("open-file", (event, args) => {
 
         const paste_event = Object.assign(new Event("paste", { bubbles: true, cancelable: true }), {
             clipboardData: {
-                getData: type => data,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                getData: (type: any) => data,
             }
         });
-
-        document.querySelector("#latex").selectionStart = 0;
-        document.querySelector("#latex").selectionEnd   = document.querySelector("#latex").value.length;
-        document.querySelector("#latex").dispatchEvent(paste_event);
+        const element = document.querySelector("#latex") as HTMLTextAreaElement;
+        element.selectionStart = 0;
+        element.selectionEnd   = element.value.length;
+        element.dispatchEvent(paste_event);
     });
 });
 
@@ -437,7 +479,8 @@ ipcRenderer.on("import-file", (event, args) => {
 
         const paste_event = Object.assign(new Event("paste", { bubbles: true, cancelable: true }), {
             clipboardData: {
-                getData: type => data,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                getData: (type: any) => data,
             }
         });
 
@@ -445,36 +488,35 @@ ipcRenderer.on("import-file", (event, args) => {
     });
 });
 
-ipcRenderer.on("save-file", (event, args) => {
-    let data = document.querySelector("#latex").value;
+ipcRenderer.on("save-file", () => {
+    const data = (document.querySelector("#latex") as HTMLTextAreaElement).value;
     ipcRenderer.postMessage("save-file-value", data)
 });
 
-ipcRenderer.on("export-image", (event, args) => {
+ipcRenderer.on("export-image", () => {
     const link    = document.createElement('a');
-    link.href     = document.querySelector("#result").src;
+    link.href     = (document.querySelector("#result") as HTMLImageElement).src;
     link.download = "LaTeX equation";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 });
 
-ipcRenderer.on("cut", (event, args) => {
+ipcRenderer.on("cut", () => {
     document.execCommand("cut");
-    let textarea = document.getElementById("latex");
+    const textarea = document.getElementById("latex") as HTMLTextAreaElement;
     actualise_img(textarea);
-    console.log(textarea)
     syntax_colorization(textarea, textarea.value);
 });
 
-ipcRenderer.on("copy", (event, args) => {
+ipcRenderer.on("copy", () => {
     document.execCommand("copy");
 });
 
-ipcRenderer.on("paste", (event, args) => {
+ipcRenderer.on("paste", () => {
     document.execCommand("paste");
-    let textarea = document.getElementById("latex");
-    let syntax = document.querySelector("#syntax")
+    const textarea = document.getElementById("latex") as HTMLTextAreaElement;
+    const syntax = document.querySelector("#syntax");
     actualise_img(textarea);
     syntax_colorization(syntax, textarea.value);
 });

@@ -1,31 +1,22 @@
 {
   "name": "latek",
+  "productName": "latek",
   "version": "1.0.0",
-  "description": "Editeur d'équations latex rapide",
-  "main": "main.js",
+  "description": "My Electron application description",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "tsc && electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "eslint --ext .ts ."
   },
-  "keywords": [
-    "latek",
-    "latex"
-  ],
-  "author": "Gargantua",
-  "license": "ISC",
-  "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.66",
-    "@electron-forge/maker-deb": "^6.0.0-beta.66",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.66",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.66",
-    "@electron-forge/maker-zip": "^6.0.0-beta.66",
-    "electron": "^20.2.0"
+  "keywords": [],
+  "author": {
+    "name": "coco875",
+    "email": "59367621+coco875@users.noreply.github.com"
   },
-  "dependencies": {
-    "electron-squirrel-startup": "^1.0.0",
-    "mathjax-full": "^3.1.0"
-  },
+  "license": "MIT",
   "config": {
     "forge": {
       "packagerConfig": {},
@@ -52,5 +43,23 @@
         }
       ]
     }
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.67",
+    "@electron-forge/maker-deb": "^6.0.0-beta.67",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.67",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.67",
+    "@electron-forge/maker-zip": "^6.0.0-beta.67",
+    "@electron-forge/plugin-webpack": "^6.0.0-beta.67",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
+    "electron": "21.1.0",
+    "eslint": "^8.25.0",
+    "eslint-plugin-import": "^2.26.0",
+    "typescript": "~4.5.4"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
+    "mathjax-full": "^3.2.2"
   }
 }

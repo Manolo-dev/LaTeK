@@ -1,11 +1,12 @@
-const { mathjax } = require('mathjax-full/js/mathjax.js');
-const { TeX } = require('mathjax-full/js/input/tex.js');
-const { SVG } = require('mathjax-full/js/output/svg.js');
-const { liteAdaptor } = require('mathjax-full/js/adaptors/liteAdaptor.js');
-const { RegisterHTMLHandler } = require('mathjax-full/js/handlers/html.js');
-const { AssistiveMmlHandler } = require('mathjax-full/js/a11y/assistive-mml.js');
+import { mathjax } from 'mathjax-full/js/mathjax';
+import { TeX } from 'mathjax-full/js/input/tex';
+import { SVG } from 'mathjax-full/js/output/svg';
+import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor';
+import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html';
+import { AssistiveMmlHandler } from 'mathjax-full/js/a11y/assistive-mml';
+import { LiteElement } from 'mathjax-full/js/adaptors/lite/Element'
 
-const { AllPackages } = require('mathjax-full/js/input/tex/AllPackages.js');
+import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages';
 
 
 const DEFAULT_OPTIONS = {
@@ -14,7 +15,7 @@ const DEFAULT_OPTIONS = {
     em: 16,
 }
 
-function TeXToSVG(str, opts) {
+export function TeXToSVG(str:string, opts:JSON = null) {
     const options = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS;
 
     const ASSISTIVE_MML = false, FONT_CACHE = true, INLINE = false, CSS = false, packages = AllPackages.sort();
@@ -34,12 +35,10 @@ function TeXToSVG(str, opts) {
         containerWidth: options.width
     });
 
-    const svgString = CSS ? adaptor.textContent(svg.styleSheet(html)) : adaptor.outerHTML(node);
+    const svgString = CSS ? adaptor.textContent(svg.styleSheet(html) as LiteElement) : adaptor.outerHTML(node);
 
     return svgString.replace(
         /<mjx-container.*?>(.*)<\/mjx-container>/gi,
         "$1"
     );
 }
-
-module.exports = TeXToSVG;

@@ -16,7 +16,7 @@ const DEFAULT_OPTIONS = {
 };
 
 export function TeXToSVG(str:string, opts:JSON = null) {
-    const options     = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS,
+    const options = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS,
         ASSISTIVE_MML = false,
         FONT_CACHE    = true,
         INLINE        = false,

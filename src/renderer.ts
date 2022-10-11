@@ -23,25 +23,26 @@ let lastLine = 0,
 
 function TeXToSVG(str:string, opts:JSON = null) {
     const options = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS,
+        ASSISTIVE_MML = false,
+        FONT_CACHE    = true,
+        INLINE        = false,
+        CSS           = false,
+        packages      = AllPackages.sort(),
 
+        adaptor       = liteAdaptor(),
+        handler       = RegisterHTMLHandler(adaptor),
+        tex           = new TeX({ packages }),
+        svg           = new SVG({ fontCache: (FONT_CACHE ? 'local' : 'none') }),
+        html          = mathjax.document('', { InputJax: tex, OutputJax: svg }),
 
-        ASSISTIVE_MML = false, FONT_CACHE = true, INLINE = false, CSS = false, packages = AllPackages.sort(),
-
-        adaptor = liteAdaptor(),
-        handler = RegisterHTMLHandler(adaptor),
-        tex = new TeX({ packages }),
-        svg  = new SVG({ fontCache: (FONT_CACHE ? 'local' : 'none') }),
-        html = mathjax.document('', { InputJax: tex, OutputJax: svg }),
-
-        node = html.convert(str, {
+        node          = html.convert(str, {
             display        : !INLINE,
             em             : options.em,
             ex             : options.ex,
             containerWidth : options.width
         }),
 
-        svgString = CSS ? adaptor.textContent(svg.styleSheet(html) as LiteElement)
-            : adaptor.outerHTML(node);
+        svgString     = CSS ? adaptor.textContent(svg.styleSheet(html) as LiteElement) : adaptor.outerHTML(node);
 
     if(ASSISTIVE_MML) AssistiveMmlHandler(handler);
     return svgString.replace(
@@ -425,7 +426,7 @@ ipcRenderer.on("open-file", (event, args) => {
 
         const pasteEvent = Object.assign(new Event("paste", { bubbles: true, cancelable: true }), {
                 clipboardData: {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     getData: (type: any) => data,
                 }
             }),

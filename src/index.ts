@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
+if(require('electron-squirrel-startup')) {
     // eslint-disable-line global-require
     app.quit();
 }
@@ -208,9 +208,9 @@ function createWindow() {
             .then(result => {
                 const filepath = result.filePath;
 
-                if (filepath == "") return false;
+                if(filepath == "") return false;
                 fs.writeFile(filepath, args, "utf-8", (err: any) => {
-                    if (err) throw err;
+                    if(err) throw err;
                 });
             });
     });
@@ -225,7 +225,7 @@ app.on('ready', createWindow);
 // For applications and their menu bar to stay active until the user quits
 // Explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
+    if(process.platform !== 'darwin') {
         app.quit();
     }
 });
@@ -233,7 +233,7 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     // On OS X it's common to re-create a window in the app when the
     // Dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) {
+    if(BrowserWindow.getAllWindows().length === 0) {
         createWindow();
     }
 });

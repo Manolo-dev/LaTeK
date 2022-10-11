@@ -54,7 +54,14 @@
         "VariableDeclarator": {"var": 1, "let": 1, "const": 1}
       }],
       "space-infix-ops": "error",
-      "keyword-spacing": "error",
+      "keyword-spacing": ["error", { "overrides": {
+        "if": { "after": false },
+        "for": { "after": false },
+        "while": { "after": false },
+        "as": { "after": false },
+        "static": { "after": true },
+        "import": { "after": true }
+      } }],
       "newline-after-var": ["error", "always"],
       "align-assignments/align-assignments": [2, { "requiresOnly": false } ],
       "one-var": ["error", "always"],

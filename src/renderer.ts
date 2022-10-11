@@ -43,7 +43,7 @@ function TeXToSVG(str:string, opts:JSON = null) {
         svgString = CSS ? adaptor.textContent(svg.styleSheet(html) as LiteElement)
             : adaptor.outerHTML(node);
 
-    if (ASSISTIVE_MML) AssistiveMmlHandler(handler);
+    if(ASSISTIVE_MML) AssistiveMmlHandler(handler);
     return svgString.replace(
         /<mjx-container.*?>(.*)<\/mjx-container>/gi,
         "$1"
@@ -66,7 +66,7 @@ function countLine(target: HTMLTextAreaElement) {
     {
         let i = syntaxLines;
 
-        while (i < latexLines) {
+        while(i < latexLines) {
             const line = document.createElement("div");
 
             line.setAttribute("class", "line");
@@ -78,7 +78,7 @@ function countLine(target: HTMLTextAreaElement) {
     {
         let i = syntaxLines;
 
-        while (i > latexLines) {
+        while(i > latexLines) {
             syntax.removeChild(syntax.children[focusedLine]);
             i--;
         }
@@ -86,7 +86,7 @@ function countLine(target: HTMLTextAreaElement) {
 
     let lenCounter = counter.children.length;
 
-    while (lenCounter < lenSyntax) {
+    while(lenCounter < lenSyntax) {
         const cell = document.createElement("div");
 
         cell.setAttribute("class", "cell");
@@ -94,7 +94,7 @@ function countLine(target: HTMLTextAreaElement) {
         lenCounter++;
     }
 
-    while (lenCounter > lenSyntax) {
+    while(lenCounter > lenSyntax) {
         counter.removeChild(counter.children[counter.children.length - 1]);
         lenCounter--;
     }
@@ -108,7 +108,7 @@ function adjustCaretScroll(target: HTMLTextAreaElement, lines = 1) {
                      * parseInt(getComputedStyle(target).lineHeight)
                      - parseInt(getComputedStyle(target).height);
 
-    if (caretScroll >= scroll || caretScroll <= 0)
+    if(caretScroll >= scroll || caretScroll <= 0)
         target.scrollTop = caretScroll + parseInt(getComputedStyle(target).lineHeight) * lines;
 }
 
@@ -118,7 +118,7 @@ function parenthesis(target: HTMLTextAreaElement, char: number) {
         start = target.selectionStart,
         end   = target.selectionEnd;
 
-    if (start == end) {
+    if(start == end) {
         target.value          = value.substring(0, start) + chars + value.substring(start);
         target.selectionStart = target.selectionEnd
                               = start + 1;
@@ -139,11 +139,11 @@ function findParenthesisEnd(target: HTMLTextAreaElement, char: number) {
 
     value = value.substring(0, start - 1) + value.substring(start);
 
-    while (i <= value.length && level != 0) {
-        if (value[i] == chars[0]) {
+    while(i <= value.length && level != 0) {
+        if(value[i] == chars[0]) {
             level++;
         }
-        if (value[i] == chars[1]) {
+        if(value[i] == chars[1]) {
             level--;
         }
         i++;
@@ -170,7 +170,7 @@ function _onkeydown(event: KeyboardEvent) {
 
     switch (event.keyCode) {
         case 9: // Tab
-            if (start == end) {
+            if(start == end) {
                 target.value          = value.substring(0, start) + tab + value.substring(start);
                 target.selectionStart = target.selectionEnd = start + tab.length;
             } else {
@@ -178,12 +178,12 @@ function _onkeydown(event: KeyboardEvent) {
                 let numberLine = 1,
                     i          = finded.length - 1;
 
-                for (; i > 0; i--) {
-                    if (start < finded[i] && finded[i] < end) {
+                for(; i > 0; i--) {
+                    if(start < finded[i] && finded[i] < end) {
                         value       = value.substring(0, finded[i]) + tab + value.substring(finded[i]);
                         numberLine += 1;
                     }
-                    if (finded[i] <= start) break;
+                    if(finded[i] <= start) break;
                 }
                 value                 = value.substring(0, finded[i]) + tab + value.substring(finded[i]);
                 target.value          = value;
@@ -192,7 +192,7 @@ function _onkeydown(event: KeyboardEvent) {
             }
             return false;
         case 13: // Enter
-            while (text.charAt(index++) == ' ') {
+            while(text.charAt(index++) == ' ') {
                 count++;
             }
             target.value          = value.substring(0, start) + '\n' + ' '.repeat(count) + value.substring(end);
@@ -203,23 +203,23 @@ function _onkeydown(event: KeyboardEvent) {
 
             return false;
         case 8: // Backspace
-            if (['(', '{', '['].includes(target.value[target.selectionStart - 1])) {
+            if(['(', '{', '['].includes(target.value[target.selectionStart - 1])) {
                 event.preventDefault();
                 findParenthesisEnd(target, ['(', '{', '['].indexOf(target.value[target.selectionStart - 1]));
                 return false;
             }
             break;
         case 46: // Delete
-            if (['(', '{', '['].includes(target.value[target.selectionStart])) {
+            if(['(', '{', '['].includes(target.value[target.selectionStart])) {
                 event.preventDefault();
                 findParenthesisEnd(target, ['(', '{', '['].indexOf(target.value[target.selectionStart]));
                 return false;
             }
     }
 
-    if (['(', '{', '['].includes(event.key)) {
-        if (target.selectionStart < target.value.length)
-            if (target.selectionStart == target.selectionEnd &&
+    if(['(', '{', '['].includes(event.key)) {
+        if(target.selectionStart < target.value.length)
+            if(target.selectionStart == target.selectionEnd &&
                 !target.value[target.selectionStart].match(/\t|\n|\r|\start|,|;|:|\.|\)|\}|\]/))
                 return true;
         event.preventDefault();
@@ -227,10 +227,10 @@ function _onkeydown(event: KeyboardEvent) {
         return false;
     }
 
-    if ([')', '}', ']'].includes(event.key)) {
-        if (target.selectionStart == target.selectionEnd) {
-            if (target.selectionStart <= target.value.length) {
-                if (target.value[target.selectionStart] == event.key) {
+    if([')', '}', ']'].includes(event.key)) {
+        if(target.selectionStart == target.selectionEnd) {
+            if(target.selectionStart <= target.value.length) {
+                if(target.value[target.selectionStart] == event.key) {
                     event.preventDefault();
                     target.selectionStart += 1;
                     return false;
@@ -239,7 +239,7 @@ function _onkeydown(event: KeyboardEvent) {
         }
     }
 
-    Promise.resolve().then(_ => {
+    Promise.resolve().then(() => {
         setTimeout(focusLine, 1, target);
         setTimeout(countLine, 1, target);
     });
@@ -269,7 +269,7 @@ function syntaxColorization(target:Element, code: string) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function multipleSyntaxColorization(target: HTMLTextAreaElement) {
-    if (!(event instanceof ClipboardEvent)) return;
+    if(!(event instanceof ClipboardEvent)) return;
     const start = target.selectionStart,
         end        = target.selectionEnd,
         value      = target.value,
@@ -292,7 +292,7 @@ function multipleSyntaxColorization(target: HTMLTextAreaElement) {
     target.selectionStart = start;
     countLine(target);
 
-    for (let i = 0; i < lenLine; i++) {
+    for(let i = 0; i < lenLine; i++) {
         syntaxColorization(syntax.children[startLine + i], codeLines[i]);
     }
 
@@ -310,11 +310,11 @@ async function focusLine(target: HTMLTextAreaElement) {
         syntax            = document.querySelector("#syntax"),
         countLines       = Array.from(value.matchAll(/^/gm)).length;
 
-    if (lastLine < countLines)
+    if(lastLine < countLines)
         syntaxColorization(syntax.children[lastLine], linesStartEnd[lastLine]);
     syntaxColorization(syntax.children[line], linesStartEnd[line]);
 
-    if (line != lastLine) {
+    if(line != lastLine) {
         (counter.children[lastLine] as HTMLElement).style.removeProperty("--color");
         (counter.children[lastLine] as HTMLElement).style.removeProperty("--font-weight");
         (counter.children[line] as HTMLElement).style.setProperty("--color", "#f000f0");
@@ -352,20 +352,20 @@ async function actualiseImg(target: HTMLTextAreaElement) {
             startLine      = 0,
             i              = result.children.length;
 
-        for (let i = 0; i < value.length; i++) {
-            if (beginIndex.includes(i)) {
+        for(let i = 0; i < value.length; i++) {
+            if(beginIndex.includes(i)) {
                 level++;
 
-                if (level == 1) {
+                if(level == 1) {
                     splitBlock.push({ value: temp, type: "line" });
                     temp = "";
                 }
             }
 
-            if (endIndex.includes(i)) {
+            if(endIndex.includes(i)) {
                 level--;
 
-                if (level == 0) {
+                if(level == 0) {
                     const endBlock = endValue[endIndex.indexOf(i)];
 
                     splitBlock.push({ value: temp + endBlock, type: "block" });
@@ -374,30 +374,30 @@ async function actualiseImg(target: HTMLTextAreaElement) {
                 }
             }
 
-            if (i < value.length)
+            if(i < value.length)
                 temp += value[i];
         }
 
-        if (temp != "")
+        if(temp != "")
             splitBlock.push({ value: temp, type: "line" });
 
-        for (let i = 0; i < splitBlock.length; i++) {
-            if (splitBlock[i].type == "line") {
+        for(let i = 0; i < splitBlock.length; i++) {
+            if(splitBlock[i].type == "line") {
                 lines.push(...splitBlock[i].value.split(/(?<=\\\\)/gm));
             } else {
                 lines.push(splitBlock[i].value);
             }
         }
 
-        for (let i = 0; i < lines.length; i++) {
+        for(let i = 0; i < lines.length; i++) {
             startLineBlock += lines[i].length;
-            if (start < startLineBlock) {
+            if(start < startLineBlock) {
                 startLine = i;
                 break;
             }
         }
 
-        while (i <= startLine) {
+        while(i <= startLine) {
             const mathLine = document.createElement("div");
 
             mathLine.setAttribute("class", "math-line");
@@ -405,7 +405,7 @@ async function actualiseImg(target: HTMLTextAreaElement) {
             i++;
         }
 
-        while (i > lines.length) {
+        while(i > lines.length) {
             result.removeChild(result.children[result.children.length - 1]);
             i--;
         }
@@ -419,9 +419,9 @@ async function actualiseImg(target: HTMLTextAreaElement) {
 }
 
 ipcRenderer.on("open-file", (event, args) => {
-    if (args.length == 0) return false;
+    if(args.length == 0) return false;
     fs.readFile(args[0], "utf-8", (err, data) => {
-        if (err) return false;
+        if(err) return false;
 
         const pasteEvent = Object.assign(new Event("paste", { bubbles: true, cancelable: true }), {
                 clipboardData: {
@@ -438,9 +438,9 @@ ipcRenderer.on("open-file", (event, args) => {
 });
 
 ipcRenderer.on("import-file", (event, args) => {
-    if (args.length == 0) return false;
+    if(args.length == 0) return false;
     fs.readFile(args[0], "utf-8", (err, data) => {
-        if (err) return false;
+        if(err) return false;
 
         const pasteEvent = Object.assign(new Event("paste", { bubbles: true, cancelable: true }), {
             clipboardData: {

@@ -21,7 +21,7 @@ function createWindow() {
     const win = new BrowserWindow({
         width          : 800,
         height         : 600,
-        icon           : __dirname + "/favicon.ico",
+        icon           : "./favicon.ico",
         webPreferences : {
             nodeIntegration  : true,
             contextIsolation : false,

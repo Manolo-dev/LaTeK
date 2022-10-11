@@ -413,7 +413,8 @@ async function actualiseImg(target: HTMLTextAreaElement) {
 
         console.log(lines[startLine]);
         // eslint-disable-next-line one-var
-        const SVGeq = TeXToSVG(lines[startLine]);
+        if(lines[startLine] != "")
+            const SVGeq = TeXToSVG(lines[startLine]);
 
         result.children[startLine].innerHTML = SVGeq;
     }, 333, event);

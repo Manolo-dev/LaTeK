@@ -1,8 +1,8 @@
-/*  o  burp °  __v____ o °  O o ° o */
-/*   O °  o\  '       \ ° _° o O °  */
-/*  ° O  ° o | _o      `-'_>  ° o ° */
-/*    o ° o   .         .-.> o O °  */
-/*   O   o ° o `-------' °  o ° O o */
+/*  o  burp °  __v____ o °  O o ° o  */
+/*   O °  o\  '       \ ° _° o O °   */
+/*  ° O  ° o | _o      `-'_>  ° o °  */
+/*    o ° o   .         .-.> o O °   */
+/*   O   o ° o `-------' °  o ° O o  */
 
 html {
   font-family: Monokai, Helvetica, Arial, sans-serif;
@@ -44,7 +44,7 @@ body {
   display: flex;
   position: relative;
 
-  background-color: #171c17;
+  background-color: #181b18;
   height: calc(100% - 10px);
   font-family: monospace;
   padding: 5px;

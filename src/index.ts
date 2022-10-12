@@ -75,7 +75,7 @@ function createWindow() {
                     accelerator : "CommandOrControl+Shift+o",
                     click() {
                         const options = {
-                            title: "Open Tex file without clearing",
+                            title: "Import Tex file",
 
                             properties: ['openFile'] as (
                                 "openFile" |
@@ -89,7 +89,7 @@ function createWindow() {
                                 "dontAddToRecent"
                                 )[],
 
-                            buttonLabel: "Open Tex File",
+                            buttonLabel: "Import Tex File",
 
                             filters: [
                                 {name: "Tex File", extensions: ["tex"]},

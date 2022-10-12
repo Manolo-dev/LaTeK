@@ -1,55 +1,11 @@
-import { ipcRenderer } from "electron";
+import { ipcRenderer } from 'electron';
 import * as fs from 'fs';
-
-import { mathjax } from 'mathjax-full/js/mathjax';
-import { TeX } from 'mathjax-full/js/input/tex';
-import { SVG } from 'mathjax-full/js/output/svg';
-import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor';
-import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html';
-import { AssistiveMmlHandler } from 'mathjax-full/js/a11y/assistive-mml';
-import { LiteElement } from 'mathjax-full/js/adaptors/lite/Element';
-
-import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages';
+import katex from 'katex';
 
 
-const DEFAULT_OPTIONS = {
-    width : 1280,
-    ex    : 8,
-    em    : 16,
-};
 
 let lastLine = 0,
     funTime: number;
-
-function TeXToSVG(str:string, opts:JSON = null) {
-    const options = opts ? { ...DEFAULT_OPTIONS, ...opts } : DEFAULT_OPTIONS,
-        ASSISTIVE_MML = false,
-        FONT_CACHE    = true,
-        INLINE        = false,
-        CSS           = false,
-        packages      = AllPackages.sort(),
-
-        adaptor       = liteAdaptor(),
-        handler       = RegisterHTMLHandler(adaptor),
-        tex           = new TeX({ packages }),
-        svg           = new SVG({ fontCache: (FONT_CACHE ? 'local' : 'none') }),
-        html          = mathjax.document('', { InputJax: tex, OutputJax: svg }),
-
-        node          = html.convert(str, {
-            display        : !INLINE,
-            em             : options.em,
-            ex             : options.ex,
-            containerWidth : options.width
-        }),
-
-        svgString     = CSS ? adaptor.textContent(svg.styleSheet(html) as LiteElement) : adaptor.outerHTML(node);
-
-    if(ASSISTIVE_MML) AssistiveMmlHandler(handler);
-    return svgString.replace(
-        /<mjx-container.*?>(.*)<\/mjx-container>/gi,
-        "$1"
-    );
-}
 
 // Import { TeXToSVG } from './tex-to-svg';
 
@@ -316,10 +272,14 @@ async function focusLine(target: HTMLTextAreaElement) {
     syntaxColorization(syntax.children[line], linesStartEnd[line]);
 
     if(line != lastLine) {
-        (counter.children[lastLine] as HTMLElement).style.removeProperty("--color");
-        (counter.children[lastLine] as HTMLElement).style.removeProperty("--font-weight");
-        (counter.children[line] as HTMLElement).style.setProperty("--color", "#f000f0");
-        (counter.children[line] as HTMLElement).style.setProperty("--font-weight", "900");
+        if(lastLine in counter.children) {
+            (counter.children[lastLine] as HTMLElement).style.removeProperty("--color");
+            (counter.children[lastLine] as HTMLElement).style.removeProperty("--font-weight");
+        }
+        if(line in counter.children) {
+            (counter.children[line] as HTMLElement).style.setProperty("--color", "#f000f0");
+            (counter.children[line] as HTMLElement).style.setProperty("--font-weight", "900");
+        }
 
         lastLine = line;
         adjustScroll(target);
@@ -336,90 +296,16 @@ async function actualiseImg(target: HTMLTextAreaElement) {
 
     // eslint-disable-next-line complexity
     funTime = setTimeout(() => {
-        const value = target.value,
-            start      = target.selectionStart,
-            splitBlock = [],
-            result     = document.querySelector("#result-box"),
-            beginMatch = Array.from(value.matchAll(/\\begin\{[^{}]*\}/gim)),
-            beginIndex = beginMatch.map(a => a.index),
-            endMatch   = Array.from(value.matchAll(/\\end\{[^{}]*\}/gim)),
-            endIndex   = endMatch.map(a => a.index),
-            endValue   = endMatch.map(a => a[0]),
-            lines      = [];
-
-        let temp = "",
-            level          = 0,
-            startLineBlock = 0,
-            startLine      = 0,
-            i              = result.children.length;
-
-        for(let i = 0; i < value.length; i++) {
-            if(beginIndex.includes(i)) {
-                level++;
-
-                if(level == 1) {
-                    splitBlock.push({ value: temp, type: "line" });
-                    temp = "";
-                }
+        katex.render(target.value,
+            document.querySelector("#result-box"), {
+                displayMode  : true,
+                throwOnError : false
             }
-
-            if(endIndex.includes(i)) {
-                level--;
-
-                if(level == 0) {
-                    const endBlock = endValue[endIndex.indexOf(i)];
-
-                    splitBlock.push({ value: temp + endBlock, type: "block" });
-                    temp = "";
-                    i   += endBlock.length;
-                }
-            }
-
-            if(i < value.length)
-                temp += value[i];
-        }
-
-        if(temp != "")
-            splitBlock.push({ value: temp, type: "line" });
-
-        for(let i = 0; i < splitBlock.length; i++) {
-            if(splitBlock[i].type == "line") {
-                lines.push(...splitBlock[i].value.split(/(?<=\\\\)/gm));
-            } else {
-                lines.push(splitBlock[i].value);
-            }
-        }
-
-        for(let i = 0; i < lines.length; i++) {
-            startLineBlock += lines[i].length;
-            if(start < startLineBlock) {
-                startLine = i;
-                break;
-            }
-        }
-
-        while(i <= startLine) {
-            const mathLine = document.createElement("div");
-
-            mathLine.setAttribute("class", "math-line");
-            result.appendChild(mathLine);
-            i++;
-        }
-
-        while(i > lines.length) {
-            result.removeChild(result.children[result.children.length - 1]);
-            i--;
-        }
-
-        console.log(lines[startLine]);
-        // eslint-disable-next-line one-var
-        if(lines[startLine] != "")
-            const SVGeq = TeXToSVG(lines[startLine]);
-
-        result.children[startLine].innerHTML = SVGeq;
+        );
     }, 333, event);
 }
 
+// IpcRenderer
 ipcRenderer.on("open-file", (event, args) => {
     if(args.length == 0) return false;
     fs.readFile(args[0], "utf-8", (err, data) => {
@@ -431,7 +317,7 @@ ipcRenderer.on("open-file", (event, args) => {
                     getData: (type: any) => data,
                 }
             }),
-            element    = document.querySelector("#latex") as HTMLTextAreaElement;
+            element      = document.querySelector("#latex") as HTMLTextAreaElement;
 
         element.selectionStart = 0;
         element.selectionEnd   = element.value.length;

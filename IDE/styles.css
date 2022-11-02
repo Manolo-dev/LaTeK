@@ -4,53 +4,21 @@
 /*    o ° o   .         .-.> o O °   */
 /*   O   o ° o `-------' °  o ° O o  */
 
-html {
-  font-family: Monokai, Helvetica, Arial, sans-serif;
-}
-
-body {
-  display: grid;
-
-  background-color: #070807;
-  color: #fff;
-  margin: 0px;
-  padding: 0px;
-
-  grid-template-columns: 50vw 50vw;
-  grid-template-rows: 33vh 67vh;
-}
-
-/*#one {
-  grid-column: 1/3;
-  grid-row: 1;
-}
-
-#two {
-  grid-column: 1/3;
-  grid-row: 2;
-}*/
-
-#one {
-  grid-column: 1;
-  grid-row: 1/3;
-}
-
-#two {
-  grid-column: 2;
-  grid-row: 1/3;
-}
-
-#IDE {
+ide-area {
   display: flex;
   position: relative;
 
+  font-family: Monokai, Helvetica, Arial, sans-serif;
+
   background-color: #181b18;
-  height: calc(100% - 10px);
-  font-family: monospace;
+  height: 100%;
   padding: 5px;
+  box-sizing: border-box;
+
+  font-family: monospace;
 }
 
-#counter {
+ide-area #ide-counter {
   position: relative;
   counter-reset: cells;
   overflow: hidden;
@@ -58,13 +26,13 @@ body {
   margin-right: 5px;
 }
 
-.cell {
+ide-area .ide-cell {
   display: block;
   counter-increment: cells;
   width: fit-content;
 }
 
-.cell:before {
+ide-area .ide-cell:before {
   display: inline-block;
   content: counter(cells);
   width: fit-content;
@@ -81,7 +49,7 @@ body {
   margin-right: 10px;
 }
 
-#textarea {
+ide-area #ide-textarea {
   display: flex;
   position: relative;
 
@@ -92,37 +60,40 @@ body {
   padding-left: 5px;
 }
 
-#syntax {
+ide-area #ide-syntax {
   flex-grow: 1;
   position: absolute;
-  width: calc(100% - 5px);
+  width: 100%;
+  box-sizing: border-box;
   height: 100%;
   overflow: hidden;
 }
 
-.line {
+ide-area .ide-line {
   font-size: 16px;
   height: 18px;
   line-height: 18px;
   white-space: pre;
 }
 
-#latex {
+ide-area #ide-area {
   position: absolute;
   margin: 0px;
-  padding: 0px;
+  padding: 1px;
 
-  width: calc(100% - 5px);
+  width: 100%;
   height: 100%;
+  box-sizing: border-box;
 
   background-color: transparent;
+
   color: #fff;
   font-family: monospace;
   font-size: 16px;
   line-height: 18px;
   white-space: pre;
 
-  caret-color: #f000f0;
+  cursor: text;
 
   overflow-wrap: normal;
   overflow-x: auto;
@@ -132,7 +103,7 @@ body {
   resize: none;
 }
 
-#latex::-webkit-scrollbar {
+ide-area #ide-area::-webkit-scrollbar {
   width: 5px;
   height: 5px;
   background-color: #111;
@@ -140,56 +111,52 @@ body {
   border-radius: 2.5px;
 }
 
-#latex::-webkit-scrollbar-thumb {
+ide-area #ide-area::-webkit-scrollbar-thumb {
   background-color: #f000f0;
   border-radius: 2.5px;
 }
 
-#latex::-webkit-scrollbar-corner {
+ide-area #ide-area::-webkit-scrollbar-corner {
   display: none;
 }
 
-#latex::selection {
+ide-area #ide-area::selection {
+  display: none;
+}
+
+ide-area #ide-area ide-caret {
   background-color: #fff4;
-  color: transparent;
+  border-radius: 4px;
+  -webkit-box-decoration-break: clone;
 }
 
-#result-box {
-  display: block;
-  position: relative;
-  width: calc(100% - 20px);
-  height: calc(100% - 20px);
-  margin:  5px;
-  padding: 5px;
-  overflow: auto;
-}
-
-#result {
-  display: block;
-  position: relative;
-
-  margin-left: auto;
-  margin-right: auto;
-
-  margin-top:    50px;
-  margin-bottom: 50px;
-
-  filter: invert(1) hue-rotate(180deg) !important;
-}
-
-#result-box::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-  background-color: #111;
-  cursor: pointer;
-  border-radius: 2.5px;
-}
-
-#result-box::-webkit-scrollbar-thumb {
+ide-area #ide-area ide-caret::before {
+  position: absolute;
+  display: inline-block;
+  content: " ";
+  width: 2px;
+  height: 19px;
   background-color: #f000f0;
-  border-radius: 2.5px;
 }
 
-#result-box::-webkit-scrollbar-corner {
+ide-area #ide-area ide-caret.right::after {
+  position: absolute;
+  display: inline-block;
+  content: " ";
+  width: 2px;
+  height: 19px;
+  background-color: #f000f0;
+}
+
+ide-area #ide-area ide-caret.right::before {
+  display: none;
+  content: none;
+}
+
+ide-area #ide-area.focusout ide-caret::before {
+  background-color: #f000f040;
+}
+
+ide-area #ide-area ide-caret::selection {
   display: none;
 }

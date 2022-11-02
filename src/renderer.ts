@@ -2,72 +2,8 @@ import { ipcRenderer } from 'electron';
 import * as fs from 'fs';
 import katex from 'katex';
 
-
-
-let lastLine = 0,
-    funTime: number;
-
-// Import { TeXToSVG } from './tex-to-svg';
-
-function countLine(target: HTMLTextAreaElement) {
-    const value = target.value,
-        start = target.selectionStart,
-        syntax = document.querySelector("#syntax"),
-
-        focusedLine = Array.from(value.substring(0, start).matchAll(/^/gm)).length,
-        syntaxLines = syntax.children.length,
-        latexLines  = Array.from(value.matchAll(/^/gm)).length,
-        lenSyntax = syntax.children.length,
-        counter     = document.querySelector("#counter");
-
-    {
-        let i = syntaxLines;
-
-        while(i < latexLines) {
-            const line = document.createElement("div");
-
-            line.setAttribute("class", "line");
-            syntax.insertBefore(line, syntax.children[focusedLine - 1]);
-            i++;
-        }
-    }
-
-    {
-        let i = syntaxLines;
-
-        while(i > latexLines) {
-            syntax.removeChild(syntax.children[focusedLine]);
-            i--;
-        }
-    }
-
-    let lenCounter = counter.children.length;
-
-    while(lenCounter < lenSyntax) {
-        const cell = document.createElement("div");
-
-        cell.setAttribute("class", "cell");
-        counter.appendChild(cell);
-        lenCounter++;
-    }
-
-    while(lenCounter > lenSyntax) {
-        counter.removeChild(counter.children[counter.children.length - 1]);
-        lenCounter--;
-    }
-}
-
-function adjustCaretScroll(target: HTMLTextAreaElement, lines = 1) {
-    const value = target.value,
-        start        = target.selectionStart,
-        scroll       = target.scrollTop,
-        caretScroll  = Array.from(value.substring(0, start).matchAll(/^/gm)).length
-                     * parseInt(getComputedStyle(target).lineHeight)
-                     - parseInt(getComputedStyle(target).height);
-
-    if(caretScroll >= scroll || caretScroll <= 0)
-        target.scrollTop = caretScroll + parseInt(getComputedStyle(target).lineHeight) * lines;
-}
+let funTime: number,
+    selectionCaret: number;
 
 function parenthesis(target: HTMLTextAreaElement, char: number) {
     const chars = ['()', '{}', '[]'][char],
@@ -125,7 +61,7 @@ function _onkeydown(event: KeyboardEvent) {
     // eslint-disable-next-line one-var
     const text = value.substring(value.substring(0, start).lastIndexOf('\n') + 1, start);
 
-    switch (event.keyCode) {
+    switch(event.keyCode) {
         case 9: // Tab
             if(start == end) {
                 target.value          = value.substring(0, start) + tab + value.substring(start);
@@ -147,7 +83,7 @@ function _onkeydown(event: KeyboardEvent) {
                 target.selectionStart = start + tab.length;
                 target.selectionEnd   = end + tab.length * numberLine;
             }
-            return false;
+            break;
         case 13: // Enter
             while(text.charAt(index++) == ' ') {
                 count++;
@@ -156,52 +92,103 @@ function _onkeydown(event: KeyboardEvent) {
             target.selectionStart = target.selectionEnd
                                   = start + count + 1;
 
-            adjustCaretScroll(target);
+            // adjustCaretScroll(target);
 
-            return false;
+            break;
         case 8: // Backspace
             if(['(', '{', '['].includes(target.value[target.selectionStart - 1])) {
-                event.preventDefault();
                 findParenthesisEnd(target, ['(', '{', '['].indexOf(target.value[target.selectionStart - 1]));
-                return false;
+            } else {
+                if(start != end) {
+                    target.value        = value.substring(0, start) + value.substring(end);
+                    target.selectionEnd = start;
+                } else if(start > 0) {
+                    target.value        = value.substring(0, start - 1) + value.substring(end);
+                    target.selectionEnd = target.selectionStart = start - 1;
+                }
             }
             break;
         case 46: // Delete
             if(['(', '{', '['].includes(target.value[target.selectionStart])) {
-                event.preventDefault();
                 findParenthesisEnd(target, ['(', '{', '['].indexOf(target.value[target.selectionStart]));
-                return false;
-            }
-    }
-
-    if(['(', '{', '['].includes(event.key)) {
-        if(target.selectionStart < target.value.length)
-            if(target.selectionStart == target.selectionEnd &&
-                !target.value[target.selectionStart].match(/\t|\n|\r|\start|,|;|:|\.|\)|\}|\]/))
-                return true;
-        event.preventDefault();
-        parenthesis(target, ['(', '{', '['].indexOf(event.key));
-        return false;
-    }
-
-    if([')', '}', ']'].includes(event.key)) {
-        if(target.selectionStart == target.selectionEnd) {
-            if(target.selectionStart <= target.value.length) {
-                if(target.value[target.selectionStart] == event.key) {
-                    event.preventDefault();
-                    target.selectionStart += 1;
-                    return false;
+            } else {
+                if(start != end) {
+                    target.value        = value.substring(0, start) + value.substring(end);
+                    target.selectionEnd = start;
+                } else if(end < value.length) {
+                    target.value        = value.substring(0, start) + value.substring(end + 1);
+                    target.selectionEnd = target.selectionStart = start;
                 }
             }
-        }
+            break;
+        case 37 :
+            if(!event.shiftKey && start != end) {
+                target.selectionEnd = start;
+                selectionCaret      = 0;
+            }
+            else if(start > 0) {
+                if(event.shiftKey) {
+                    if(selectionCaret == 0)
+                        selectionCaret = -1;
+                    if(selectionCaret == 1)
+                        target.selectionStart -= 1;
+                    else
+                        target.selectionEnd -= 1;
+                }
+                else
+                    target.selectionEnd = target.selectionStart = target.selectionStart - 1;
+            }
+            break;
+        case 39 :
+            if(!event.shiftKey && start != end) {
+                target.selectionStart = end;
+                selectionCaret        = 0;
+            }
+            else if(start < value.length) {
+                if(event.shiftKey) {
+                    if(selectionCaret == 0)
+                        selectionCaret = 1;
+                    if(selectionCaret == 1)
+                        target.selectionEnd += 1;
+                    else
+                        target.selectionStart += 1;
+                }
+                else
+                    target.selectionEnd = target.selectionStart = target.selectionStart + 1;
+            }
+            break;
+        default:
+            if(!event.shiftKey && !event.ctrlKey && !event.altKey)
+                target.value = value.substring(0, start) + event.key + value.substring(end);
     }
 
+    // if(['(', '{', '['].includes(event.key)) {
+    //     if(target.selectionStart < target.value.length)
+    //         if(target.selectionStart == target.selectionEnd &&
+    //             !target.value[target.selectionStart].match(/\t|\n|\r|\start|,|;|:|\.|\)|\}|\]/))
+    //     event.preventDefault();
+    //     parenthesis(target, ['(', '{', '['].indexOf(event.key));
+    //     return false;
+    // }
+
+    // if([')', '}', ']'].includes(event.key)) {
+    //     if(target.selectionStart == target.selectionEnd) {
+    //         if(target.selectionStart <= target.value.length) {
+    //             if(target.value[target.selectionStart] == event.key) {
+    //                 event.preventDefault();
+    //                 target.selectionStart += 1;
+    //                 return false;
+    //             }
+    //         }
+    //     }
+    // }
+
     Promise.resolve().then(() => {
-        setTimeout(focusLine, 1, target);
-        setTimeout(countLine, 1, target);
+        // setTimeout(focusLine, 1, target);
+        // setTimeout(countLine, 1, target);
     });
 
-    return true;
+    return false;
 }
 
 async function adjustScroll(target: HTMLTextAreaElement) {
@@ -212,78 +199,6 @@ async function adjustScroll(target: HTMLTextAreaElement) {
     document.querySelector("#counter").scrollTop = scroll;
     syntax.scrollTop                             = scroll;
     syntax.scrollLeft                            = scrollX;
-}
-
-
-function syntaxColorization(target:Element, code: string) {
-    code = code
-        .replace(/(\\\\)/gim, "<span style=\"color: #f08;\">$1</span>")
-        .replace(/(\\([a-z]+|\{|\}|\[|\]))/gim, "<span style=\"color: #0aa;\">$1</span>")
-        .replace(/(\^|_)/gim, "<span style=\"color: #0a0;\">$1</span>");
-
-    target.innerHTML = code;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function multipleSyntaxColorization(target: HTMLTextAreaElement) {
-    if(!(event instanceof ClipboardEvent)) return;
-    const start = target.selectionStart,
-        end        = target.selectionEnd,
-        value      = target.value,
-        before     = value.substring(0, start),
-        after      = value.substring(end),
-        startLine = Array.from(value.substring(0, start).matchAll(/^/gm)).length - 1,
-        syntax     = document.querySelector("#syntax"),
-        code       = event.clipboardData.getData("Text").replace(/\r\n|\r|\n/gm, "\n"),
-        codeLines = Array.from(code.split(/^/gm)),
-        lenLine   = codeLines.length;
-
-    event.preventDefault();
-
-    target.value          = before + after;
-    target.selectionStart = start;
-    countLine(target);
-
-
-    target.value          = before + code + after;
-    target.selectionStart = start;
-    countLine(target);
-
-    for(let i = 0; i < lenLine; i++) {
-        syntaxColorization(syntax.children[startLine + i], codeLines[i]);
-    }
-
-    target.selectionStart = target.selectionEnd = start + code.length;
-
-    adjustCaretScroll(target, lenLine);
-}
-
-async function focusLine(target: HTMLTextAreaElement) {
-    const start = target.selectionStart,
-        value             = target.value,
-        line              = Array.from(value.substring(0, start).matchAll(/^/gm)).length - 1,
-        counter           = document.querySelector("#counter"),
-        linesStartEnd   = Array.from(value.matchAll(/^.*$/gm)).map(a => a[0]),
-        syntax            = document.querySelector("#syntax"),
-        countLines       = Array.from(value.matchAll(/^/gm)).length;
-
-    if(lastLine < countLines)
-        syntaxColorization(syntax.children[lastLine], linesStartEnd[lastLine]);
-    syntaxColorization(syntax.children[line], linesStartEnd[line]);
-
-    if(line != lastLine) {
-        if(lastLine in counter.children) {
-            (counter.children[lastLine] as HTMLElement).style.removeProperty("--color");
-            (counter.children[lastLine] as HTMLElement).style.removeProperty("--font-weight");
-        }
-        if(line in counter.children) {
-            (counter.children[line] as HTMLElement).style.setProperty("--color", "#f000f0");
-            (counter.children[line] as HTMLElement).style.setProperty("--font-weight", "900");
-        }
-
-        lastLine = line;
-        adjustScroll(target);
-    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -362,7 +277,6 @@ ipcRenderer.on("cut", () => {
     const textarea = document.getElementById("latex") as HTMLTextAreaElement;
 
     actualiseImg(textarea);
-    syntaxColorization(textarea, textarea.value);
 });
 
 ipcRenderer.on("copy", () => {
@@ -375,5 +289,4 @@ ipcRenderer.on("paste", () => {
         syntax   = document.querySelector("#syntax");
 
     actualiseImg(textarea);
-    syntaxColorization(syntax, textarea.value);
 });

@@ -27,11 +27,11 @@
                 id="latex"
                 name="latex"
                 value=""
-                onclick="adjustCaretScroll(this); focusLine(this);"
+                onclick="// adjustCaretScroll(this); focusLine(this);"
                 onscroll="adjustScroll(this);"
                 onkeydown= "let result = _onkeydown(event);
-                            countLine(this);
-                            focusLine(this);
+                            // countLine(this);
+                            // focusLine(this);
                             compile(this);
                             return result;"
                 onpaste="multipleSyntaxColorization(this); compile(this);"

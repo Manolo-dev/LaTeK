@@ -23,48 +23,53 @@
           "jsx": true
       }
   },
+  "ignorePatterns": [
+    "drafts/*.ts"
+  ],
   "rules": {
-      "semi": "error",
-      "camelcase": "error",
-      "capitalized-comments": ["warn"],
-      "complexity": ["error", 5],
-      "func-style": ["error", "declaration"],
-      "logical-assignment-operators": ["error", "always"],
-      "max-depth": ["error", 5],
-      "no-irregular-whitespace": "error",
-      "spaced-comment": ["error", "always"],
-      "block-spacing": "error",
-      "no-mixed-spaces-and-tabs": "error",
-      "no-trailing-spaces": "error",
-      "no-eval": "error",
-      "no-extra-semi": "error",
-      "key-spacing": ["error", {
-        "multiLine": {
-            "beforeColon": false,
-            "afterColon":true
-        },
-        "align": {
-            "beforeColon": true,
-            "afterColon": true,
-            "on": "colon"
-        }
-      }],
-      "indent": ["error", 4, {
-        "SwitchCase": 1,
-        "VariableDeclarator": {"var": 1, "let": 1, "const": 1}
-      }],
-      "space-infix-ops": "error",
-      "keyword-spacing": ["error", { "overrides": {
-        "if": { "after": false },
-        "for": { "after": false },
-        "while": { "after": false },
-        "as": { "after": false },
-        "static": { "after": true },
-        "import": { "after": true }
-      } }],
-      "newline-after-var": ["error", "always"],
-      "align-assignments/align-assignments": [2, { "requiresOnly": false } ],
-      "one-var": ["error", "always"],
-      "max-len": ["error", { "code": 120 }]
+    "semi": "error",
+    "camelcase": "error",
+    "capitalized-comments": ["warn"],
+    "complexity": ["error", 5],
+    "func-style": ["error", "declaration"],
+    "logical-assignment-operators": ["error", "always"],
+    "max-depth": ["error", 5],
+    "no-irregular-whitespace": "error",
+    "spaced-comment": ["error", "always"],
+    "block-spacing": "error",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-trailing-spaces": "error",
+    "no-eval": "error",
+    "no-extra-semi": "error",
+    "no-fallthrough" : "off",
+    "key-spacing": ["error", {
+      "multiLine": {
+          "beforeColon": false,
+          "afterColon":true
+      },
+      "align": {
+          "beforeColon": true,
+          "afterColon": true,
+          "on": "colon"
+      }
+    }],
+    "indent": ["error", 4, {
+      "SwitchCase": 1,
+      "VariableDeclarator": {"var": 1, "let": 1, "const": 1}
+    }],
+    "space-infix-ops": "error",
+    "keyword-spacing": ["error", { "overrides": {
+      "if": { "after": false },
+      "for": { "after": false },
+      "while": { "after": false },
+      "as": { "after": false },
+      "static": { "after": true },
+      "import": { "after": true },
+      "switch": { "after": false }
+    }}],
+    "newline-after-var": ["error", "always"],
+    "align-assignments/align-assignments": [2, { "requiresOnly": false } ],
+    "one-var": ["error", "always"],
+    "max-len": ["error", { "code": 120 }]
   }
 }

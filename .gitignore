@@ -89,3 +89,7 @@ typings/
 out/
 
 dist/
+
+# Drafts
+
+drafts/
